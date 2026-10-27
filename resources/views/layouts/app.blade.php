@@ -439,27 +439,27 @@
             <!-- Alerts & Flash Messages -->
             <div class="px-4 sm:px-6 lg:px-8 pt-4">
                 @if(session('success'))
-                    <div class="mb-4 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800 flex items-center justify-between">
+                    <div class="mb-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/60 p-4 text-sm text-emerald-800 dark:text-emerald-300 flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
-                            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <span>{{ session('success') }}</span>
                         </div>
                     </div>
                 @endif
 
                 @if(session('error'))
-                    <div class="mb-4 rounded-xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-800 flex items-center justify-between">
+                    <div class="mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 p-4 text-sm text-rose-800 dark:text-rose-300 flex items-center justify-between">
                         <div class="flex items-center gap-2.5">
-                            <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <svg class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             <span>{{ session('error') }}</span>
                         </div>
                     </div>
                 @endif
 
-                @if($errors->any())
-                    <div class="mb-4 rounded-xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-800">
+                @if(isset($errors) && $errors->any())
+                    <div class="mb-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 p-4 text-sm text-rose-800 dark:text-rose-300">
                         <div class="font-semibold mb-1">Please check the following errors:</div>
-                        <ul class="list-disc list-inside space-y-0.5 text-xs text-rose-700">
+                        <ul class="list-disc list-inside space-y-0.5 text-xs text-rose-700 dark:text-rose-400">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach

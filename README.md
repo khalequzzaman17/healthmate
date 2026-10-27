@@ -2,13 +2,32 @@
 
 [![PHP Unit & Pest](https://img.shields.io/badge/Tests-16%20Passed-brightgreen)](tests)
 [![Laravel](https://img.shields.io/badge/Laravel-13.x-red)](https://laravel.com)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-blue)](https://mysql.com)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4-blue)](https://tailwindcss.com)
 [![Alpine.js](https://img.shields.io/badge/Alpine.js-v3-purple)](https://alpinejs.dev)
 [![License](https://img.shields.io/badge/License-Proprietary-darkblue)](#license)
 
-**HealthMate** is a production-grade, multi-tenant healthcare software-as-a-service (SaaS) platform built with Laravel 13, Blade, Tailwind CSS, and Alpine.js.
+**HealthMate** is a production-grade, multi-tenant healthcare software-as-a-service (SaaS) platform built with Laravel, Blade, Tailwind CSS, and Alpine.js.
 
 Designed for healthcare networks and multi-specialty clinics, HealthMate provides complete clinic workspace isolation, proactive nurse care coordination, structured doctor consultation desks, multi-item prescription authoring, an auditable staff commission engine, patient billing, and a self-service patient portal.
+
+---
+
+## 🎨 Modern Healthcare UI & Features
+
+HealthMate features a modern UI system tailored for clinical operations:
+- **Navy & Royal Blue Palette**: High-contrast, clean `#0A1629` dark navy navigation sidebar with `#1E56E3` royal blue primary action buttons.
+- **Theme Modes**: Comprehensive support for **Light Mode**, **Dark Mode**, and **Auto (System) Detection** with instant theme toggle and zero flicker.
+- **Enhanced Security**: Password fields include interactive visibility toggle eye icons.
+- **Rocket Loader Safe**: CDN scripts are tagged with `data-cfasync="false"` for compatibility with Cloudflare optimization proxies without compilation overhead.
+- **7 Core Workflow Screens**:
+  1. *Admin Dashboard*: KPI stat cards, Revenue Overview spline area chart, Patient Flow gauge (`28 Today`), Recent Appointments, and Quick Actions.
+  2. *Nurse Calls Dashboard*: Today's calls queue, overdue follow-ups, circular call progress gauge, and recent clinical notes.
+  3. *Doctor Dashboard*: Scheduled appointments, reports for review, and featured patient clinical spotlight card.
+  4. *Patient Profile*: Medical history, vitals, timeline, appointments, calls, prescriptions, and billing tabs.
+  5. *Appointment Booking*: 3-step interactive booking stepper with service and doctor selection.
+  6. *Nurse Call & Follow-up Recording*: Structured vitals capture (Blood Pressure, Glucose, Pulse) and call notes.
+  7. *Doctor Consultation Desk*: Multi-tab consultation, ICD-10 diagnosis, and prescription authoring with clinical notes toolbar.
 
 ---
 
@@ -60,25 +79,29 @@ Designed for healthcare networks and multi-specialty clinics, HealthMate provide
 ### 1. Requirements
 - PHP 8.3 or PHP 8.4+
 - Composer 2+
-- Node.js 20+ & npm
-- SQLite (for testing) or MySQL 8.0+ / MariaDB 10.11+ (production)
+- MySQL 8.0+ / MariaDB 10.11+
+- Node.js 20+ (Optional, frontend uses standalone CDNs)
 
 ### 2. Installation
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/healthmate.git
+git clone https://github.com/khalequzzaman17/healthmate.git
 cd healthmate
 
 # Install PHP dependencies
 composer install
 
-# Install JS dependencies & compile frontend assets
-npm install
-npm run build
-
 # Setup environment configuration
 cp .env.example .env
 php artisan key:generate
+
+# Configure MySQL in your .env file
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=healthmate
+# DB_USERNAME=root
+# DB_PASSWORD=
 
 # Run database migrations and seed sample demo data
 php artisan migrate:fresh --seed
@@ -88,7 +111,7 @@ php artisan migrate:fresh --seed
 ```bash
 php artisan serve
 ```
-Visit `http://127.0.0.1:8000` in your web browser.
+Or via Laravel Herd: `https://healthmate.test`
 
 ---
 
