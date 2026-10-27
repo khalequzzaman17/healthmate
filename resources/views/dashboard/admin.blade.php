@@ -5,8 +5,12 @@
     <!-- Header banner -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">Clinic Administration</span>
+                <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">{{ $activeClinic->name ?? 'Sunrise Clinic' }}</span>
+            </div>
             <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Good morning, Admin!</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Here's what's happening at {{ $activeClinic->name ?? 'Sunrise Clinic' }} today.</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Here's what's happening at {{ $activeClinic->name ?? 'Sunrise Clinic' }} today.</p>
         </div>
         <div class="flex items-center gap-2">
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-medium text-slate-600 dark:text-slate-300 shadow-2xs">

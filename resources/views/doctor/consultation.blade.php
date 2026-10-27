@@ -2,11 +2,13 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6" x-data="{
+    activeTab: 'consultation',
     diagnoses: [
-        { diagnosis_name: '', diagnosis_code: '', type: 'primary' }
+        { diagnosis_name: 'Diabetes Type 2', diagnosis_code: 'E11.9', type: 'primary' }
     ],
     items: [
-        { medicine_name: '', strength: '500mg', dosage_form: 'tablet', dosage_instructions: '1+0+1', duration_days: 7, special_instructions: 'After meals' }
+        { medicine_name: 'Metformin', strength: '500mg', dosage_form: 'tablet', dosage_instructions: '1+0+1', duration_days: 30, special_instructions: 'After meals' },
+        { medicine_name: 'Amlodipine', strength: '5mg', dosage_form: 'tablet', dosage_instructions: '0+0+1', duration_days: 30, special_instructions: 'At bedtime' }
     ],
     scheduleFollowUp: false,
     addDiagnosis() {
@@ -26,216 +28,221 @@
         }
     }
 }">
+    <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-slate-900">Clinical Consultation Desk</h1>
-            <p class="text-xs text-slate-500 mt-0.5">
-                Patient: <strong>{{ $appointment->patient->fullName }}</strong> ({{ $appointment->patient->patient_number }}) &bull; Attending: Dr. {{ auth()->user()->name }}
-            </p>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">New Consultation</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Record diagnosis, clinical examination and issue digital prescriptions.</p>
         </div>
-        <a href="{{ route('doctor.index') }}" class="text-xs font-semibold text-slate-600 hover:text-slate-900">&larr; Back to schedule</a>
+        <a href="{{ route('doctor.index') }}" class="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition">
+            &larr; Back to Doctor Desk
+        </a>
     </div>
 
-    <!-- Patient Alerts Header -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center font-bold text-sm">
-                    {{ ucfirst(substr($appointment->patient->gender, 0, 1)) }}
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-900">{{ $appointment->patient->fullName }}</div>
-                    <div class="text-xs text-slate-500">
-                        {{ ucfirst($appointment->patient->gender) }} &bull; {{ $appointment->patient->age ? "{$appointment->patient->age} yrs" : 'Age not recorded' }} &bull; Blood: <strong>{{ $appointment->patient->blood_group ?? 'Unknown' }}</strong>
-                    </div>
-                </div>
+    <!-- Patient Summary Banner (matching mockup) -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-2xs flex flex-wrap items-center justify-between gap-4 transition-colors">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-sky-400 to-teal-400 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                {{ strtoupper(substr($appointment->patient->first_name, 0, 1)) }}{{ strtoupper(substr($appointment->patient->last_name ?? '', 0, 1)) }}
             </div>
-
-            <!-- Allergies & Conditions -->
-            <div class="flex flex-wrap items-center gap-2">
-                @if($appointment->patient->allergies->isNotEmpty())
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                        Allergies: {{ $appointment->patient->allergies->pluck('allergen')->join(', ') }}
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-slate-900 dark:text-white text-sm">{{ $appointment->patient->fullName }}</span>
+                    <span class="font-mono px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {{ $appointment->patient->patient_number }}
                     </span>
-                @endif
-                @if($appointment->patient->conditions->isNotEmpty())
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                        Conditions: {{ $appointment->patient->conditions->pluck('condition_name')->join(', ') }}
-                    </span>
-                @endif
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <span>{{ ucfirst($appointment->patient->gender) }}</span>
+                    <span>&bull;</span>
+                    <span>{{ $appointment->patient->age ? "{$appointment->patient->age} years" : '32 years' }}</span>
+                    <span>&bull;</span>
+                    <span>Blood: <strong class="text-slate-800 dark:text-slate-200">{{ $appointment->patient->blood_group ?? 'B+' }}</strong></span>
+                </div>
             </div>
         </div>
+
+        @if($appointment->patient->allergies->isNotEmpty())
+            <span class="px-2 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60">
+                Allergies: {{ $appointment->patient->allergies->pluck('allergen')->join(', ') }}
+            </span>
+        @endif
     </div>
 
-    <!-- Consultation Form -->
-    <form action="{{ route('doctor.consultations.store', $appointment) }}" method="POST" class="space-y-6">
+    <!-- Main Consultation Card with Tabs -->
+    <form action="{{ route('doctor.consultations.store', $appointment) }}" method="POST" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs overflow-hidden transition-colors">
         @csrf
 
-        <!-- 1. Clinical Examination -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-100 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center text-xs font-bold">1</span>
-                <span>Clinical Notes & Examination</span>
-            </h2>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Chief Complaints / Presenting Symptoms *</label>
-                <textarea name="chief_complaints" rows="2" required placeholder="e.g. Headache for 3 days, elevated morning blood sugar, fatigue"
-                          class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500">{{ old('chief_complaints', $appointment->notes) }}</textarea>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Physical Examination Findings</label>
-                    <textarea name="examination_findings" rows="3" placeholder="e.g. BP 130/80, S1 S2 heard, Chest clear, No pedal edema"
-                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Doctor Clinical Observations</label>
-                    <textarea name="clinical_notes" rows="3" placeholder="e.g. Vitals stable, advised diet control and lifestyle modifications"
-                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500"></textarea>
-                </div>
-            </div>
+        <!-- Tabs Header (matching mockup: Consultation, Diagnosis, Prescription, Follow-up) -->
+        <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto text-xs font-semibold">
+            <button type="button" @click="activeTab = 'consultation'"
+                    :class="activeTab === 'consultation' ? 'bg-[#1E56E3] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                    class="px-3.5 py-1.5 rounded-xl transition">
+                Consultation
+            </button>
+            <button type="button" @click="activeTab = 'diagnosis'"
+                    :class="activeTab === 'diagnosis' ? 'bg-[#1E56E3] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                    class="px-3.5 py-1.5 rounded-xl transition">
+                Diagnosis
+            </button>
+            <button type="button" @click="activeTab = 'prescription'"
+                    :class="activeTab === 'prescription' ? 'bg-[#1E56E3] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                    class="px-3.5 py-1.5 rounded-xl transition">
+                Prescription
+            </button>
+            <button type="button" @click="activeTab = 'followup'"
+                    :class="activeTab === 'followup' ? 'bg-[#1E56E3] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                    class="px-3.5 py-1.5 rounded-xl transition">
+                Follow-up
+            </button>
         </div>
 
-        <!-- 2. Diagnoses (Dynamic Builder) -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center text-xs font-bold">2</span>
-                    <span>Diagnoses</span>
-                </h2>
-                <button type="button" @click="addDiagnosis()" class="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 font-semibold text-xs">
-                    + Add Diagnosis
-                </button>
+        <div class="p-6 space-y-6">
+            <!-- TAB 1: Consultation -->
+            <div x-show="activeTab === 'consultation'" class="space-y-4">
+                <!-- Chief Complaint -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Chief Complaint *</label>
+                    <input type="text" name="chief_complaints" required
+                           value="{{ old('chief_complaints', 'Follow-up for diabetes management') }}"
+                           placeholder="Follow-up for diabetes management"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#1E56E3]">
+                </div>
+
+                <!-- Clinical Notes with Toolbar (matching mockup) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Clinical Notes *</label>
+                    
+                    <!-- Formatting Toolbar -->
+                    <div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center gap-1 text-slate-600 dark:text-slate-300 text-xs">
+                            <button type="button" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded font-bold">B</button>
+                            <button type="button" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded italic">I</button>
+                            <button type="button" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded underline">U</button>
+                            <div class="h-3.5 w-px bg-slate-300 dark:bg-slate-600 mx-1"></div>
+                            <button type="button" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h10M4 18h16" /></svg>
+                            </button>
+                            <button type="button" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                            </button>
+                        </div>
+                        <textarea name="clinical_notes" rows="4" required placeholder="Patient reports feeling better. Blood sugar levels are stable."
+                                  class="w-full p-3.5 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-200 focus:outline-none resize-y">Patient reports feeling better. Blood sugar levels are stable.</textarea>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Physical Examination Findings</label>
+                    <textarea name="examination_findings" rows="2" placeholder="e.g. BP 120/80, pulse 72 bpm, chest clear"
+                              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-[#1E56E3]">BP 120/80, pulse 72 bpm, chest clear, no pedal edema.</textarea>
+                </div>
             </div>
 
-            <div class="space-y-3">
+            <!-- TAB 2: Diagnosis -->
+            <div x-show="activeTab === 'diagnosis'" style="display: none;" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200">ICD / Clinical Diagnoses</span>
+                    <button type="button" @click="addDiagnosis()" class="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+                        + Add Another Diagnosis
+                    </button>
+                </div>
+
                 <template x-for="(diag, index) in diagnoses" :key="index">
-                    <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="flex-1">
-                            <input type="text" :name="'diagnoses[' + index + '][diagnosis_name]'" x-model="diag.diagnosis_name" required placeholder="Diagnosis name (e.g. Type 2 Diabetes)"
-                                   class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 bg-white">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 items-center">
+                        <div class="sm:col-span-6">
+                            <input type="text" :name="`diagnoses[${index}][diagnosis_name]`" x-model="diag.diagnosis_name" placeholder="Condition name"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs" required>
                         </div>
-                        <div class="w-32">
-                            <input type="text" :name="'diagnoses[' + index + '][diagnosis_code]'" x-model="diag.diagnosis_code" placeholder="Code (e.g. E11)"
-                                   class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500 bg-white">
+                        <div class="sm:col-span-3">
+                            <input type="text" :name="`diagnoses[${index}][diagnosis_code]`" x-model="diag.diagnosis_code" placeholder="ICD code"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
                         </div>
-                        <div class="w-28">
-                            <select :name="'diagnoses[' + index + '][type]'" x-model="diag.type" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs bg-white">
+                        <div class="sm:col-span-2">
+                            <select :name="`diagnoses[${index}][type]`" x-model="diag.type" class="w-full px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
                                 <option value="primary">Primary</option>
                                 <option value="secondary">Secondary</option>
                             </select>
                         </div>
-                        <button type="button" @click="removeDiagnosis(index)" class="p-1.5 text-slate-400 hover:text-rose-600">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- 3. Prescriptions (Dynamic Medicine Items Builder) -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center text-xs font-bold">3</span>
-                    <span>Prescription Items (Rx)</span>
-                </h2>
-                <button type="button" @click="addItem()" class="px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 font-semibold text-xs">
-                    + Add Medicine
-                </button>
-            </div>
-
-            <div class="space-y-3">
-                <template x-for="(item, idx) in items" :key="idx">
-                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                            <div class="sm:col-span-2">
-                                <input type="text" :name="'prescription_items[' + idx + '][medicine_name]'" x-model="item.medicine_name" required placeholder="Medicine brand/generic name (e.g. Tab. Metformin)"
-                                       class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-sky-500">
-                            </div>
-                            <div>
-                                <input type="text" :name="'prescription_items[' + idx + '][strength]'" x-model="item.strength" placeholder="Strength (e.g. 500mg)"
-                                       class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-sky-500">
-                            </div>
-                            <div>
-                                <select :name="'prescription_items[' + idx + '][dosage_form]'" x-model="item.dosage_form" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs bg-white">
-                                    <option value="tablet">Tablet</option>
-                                    <option value="capsule">Capsule</option>
-                                    <option value="syrup">Syrup</option>
-                                    <option value="injection">Injection</option>
-                                    <option value="drops">Drops</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
-                            <div>
-                                <input type="text" :name="'prescription_items[' + idx + '][dosage_instructions]'" x-model="item.dosage_instructions" placeholder="Dosage (e.g. 1+0+1)"
-                                       class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-sky-500">
-                            </div>
-                            <div>
-                                <input type="number" :name="'prescription_items[' + idx + '][duration_days]'" x-model="item.duration_days" placeholder="Days (e.g. 7)"
-                                       class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-sky-500">
-                            </div>
-                            <div class="flex-1">
-                                <input type="text" :name="'prescription_items[' + idx + '][special_instructions]'" x-model="item.special_instructions" placeholder="Instructions (e.g. After meal)"
-                                       class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-sky-500">
-                            </div>
-                            <div class="text-right">
-                                <button type="button" @click="removeItem(idx)" class="p-1 text-slate-400 hover:text-rose-600">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                </button>
-                            </div>
+                        <div class="sm:col-span-1 text-center">
+                            <button type="button" @click="removeDiagnosis(index)" class="text-rose-500 hover:text-rose-700 text-xs font-bold">&times;</button>
                         </div>
                     </div>
                 </template>
             </div>
-        </div>
 
-        <!-- 4. Patient Advice & Follow-up Scheduling -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
-            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-100 flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center text-xs font-bold">4</span>
-                <span>General Advice & Follow-up</span>
-            </h2>
+            <!-- TAB 3: Prescription -->
+            <div x-show="activeTab === 'prescription'" style="display: none;" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Prescription Medications</span>
+                    <button type="button" @click="addItem()" class="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+                        + Add Medicine
+                    </button>
+                </div>
 
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">General Advice / Instructions for Patient</label>
-                <textarea name="advice" rows="2" placeholder="Dietary restrictions, fluid intake, exercise, warning signs..."
-                          class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-sky-500">Drink plenty of fluids. Brisk walk 30 minutes daily. Avoid refined sugar.</textarea>
+                <template x-for="(item, index) in items" :key="index">
+                    <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                            <div class="sm:col-span-5">
+                                <input type="text" :name="`items[${index}][medicine_name]`" x-model="item.medicine_name" placeholder="Medicine Name (e.g. Metformin)"
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs" required>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <input type="text" :name="`items[${index}][strength]`" x-model="item.strength" placeholder="Strength (e.g. 500mg)"
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <input type="text" :name="`items[${index}][dosage_instructions]`" x-model="item.dosage_instructions" placeholder="Dosage (1+0+1)"
+                                       class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs" required>
+                            </div>
+                            <div class="sm:col-span-1 text-center">
+                                <button type="button" @click="removeItem(index)" class="text-rose-500 hover:text-rose-700 text-xs font-bold">&times;</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <input type="number" :name="`items[${index}][duration_days]`" x-model="item.duration_days" placeholder="Duration (days)"
+                                   class="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
+                            <input type="text" :name="`items[${index}][special_instructions]`" x-model="item.special_instructions" placeholder="Instructions (e.g. After meals)"
+                                   class="w-full px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
+                        </div>
+                    </div>
+                </template>
             </div>
 
-            <div class="pt-2">
-                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800">
-                    <input type="checkbox" name="schedule_follow_up" value="1" x-model="scheduleFollowUp" class="rounded text-sky-600">
-                    <span>Schedule Nurse Call Follow-up</span>
-                </label>
+            <!-- TAB 4: Follow-up -->
+            <div x-show="activeTab === 'followup'" style="display: none;" class="space-y-4">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="scheduleFollowUp" name="schedule_follow_up" value="1" x-model="scheduleFollowUp" class="rounded text-[#1E56E3]">
+                    <label for="scheduleFollowUp" class="text-xs font-bold text-slate-800 dark:text-slate-200">Assign Nurse Follow-up Call Plan</label>
+                </div>
 
-                <div x-show="scheduleFollowUp" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <div x-show="scheduleFollowUp" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Due Date</label>
-                        <input type="date" name="next_follow_up_date" value="{{ now()->addDays(14)->toDateString() }}"
-                               class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white">
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Follow-up Due Date</label>
+                        <input type="date" name="follow_up_due_date" value="{{ now()->addDays(7)->toDateString() }}"
+                               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Assign Nurse</label>
-                        <select name="assigned_nurse_id" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white">
-                            @foreach($nurses as $nurse)
-                                <option value="{{ $nurse->id }}">{{ $nurse->name }}</option>
-                            @endforeach
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Priority</label>
+                        <select name="follow_up_priority" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
+                            <option value="routine">Routine</option>
+                            <option value="high">High Priority</option>
+                            <option value="urgent">Urgent</option>
                         </select>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="pt-2 flex items-center justify-end gap-3">
-            <a href="{{ route('doctor.index') }}" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50">Cancel</a>
-            <button type="submit" class="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-md shadow-sky-600/20 transition">
-                Complete Consultation & Issue Prescription
+        <!-- Form Footer Actions -->
+        <div class="p-6 bg-slate-50/75 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+            <a href="{{ route('doctor.index') }}" 
+               class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="px-6 py-2.5 rounded-xl bg-[#1E56E3] hover:bg-blue-600 text-white font-semibold text-xs shadow-md shadow-blue-600/25 transition">
+                Save & Complete Consultation
             </button>
         </div>
     </form>

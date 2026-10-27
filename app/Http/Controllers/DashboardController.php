@@ -198,7 +198,7 @@ class DashboardController extends Controller
                     'completed' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::Completed->value)->count(),
                     'in_progress' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::CheckedIn->value)->count(),
                     'waiting' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::Scheduled->value)->count(),
-                    'cancelled' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::Cancelled->value)->count(),
+                    'cancelled' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::Canceled->value)->count(),
                 ];
 
                 return view('dashboard.admin', compact(
