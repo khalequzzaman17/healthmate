@@ -1,58 +1,159 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HealthMate — Multi-Clinic Healthcare Management SaaS Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![PHP Unit & Pest](https://img.shields.io/badge/Tests-16%20Passed-brightgreen)](tests)
+[![Laravel](https://img.shields.io/badge/Laravel-13.x-red)](https://laravel.com)
+[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4-blue)](https://tailwindcss.com)
+[![Alpine.js](https://img.shields.io/badge/Alpine.js-v3-purple)](https://alpinejs.dev)
+[![License](https://img.shields.io/badge/License-Proprietary-darkblue)](#license)
 
-## About Laravel
+**HealthMate** is a production-grade, multi-tenant healthcare software-as-a-service (SaaS) platform built with Laravel 13, Blade, Tailwind CSS, and Alpine.js.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Designed for healthcare networks and multi-specialty clinics, HealthMate provides complete clinic workspace isolation, proactive nurse care coordination, structured doctor consultation desks, multi-item prescription authoring, an auditable staff commission engine, patient billing, and a self-service patient portal.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🌟 Key Functional Modules
 
-## Learning Laravel
+1. **Strict Multi-Tenant Workspace Isolation**
+   - Independent clinics operate inside their own workspaces (`TenantContext`, `ClinicScope`).
+   - Strict tenant-scoped query filtering prevents cross-clinic data leakage.
+   - Support for multiple clinic memberships per user with active workspace switching.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. **Proactive Nurse Call & Follow-up Module**
+   - Daily call queues with overdue follow-up tracking.
+   - Structured vital signs capture (Blood Pressure, Blood Glucose, Pulse, Temperature, Weight).
+   - Direct health report compilation and submission to the attending Doctor's review queue.
+   - Automatic, auditable nurse commission earning.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3. **Attending Doctor Workspace**
+   - Clinical review queue for nurse-submitted health reports with review feedback.
+   - Today's appointment consultations with chief complaint and clinical notes.
+   - Structured diagnoses with ICD-10 codings.
+   - Multi-item prescription issuance (Dosage, Route, Frequency, Duration).
+   - Automatic, auditable doctor commission earning.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+4. **Auditable Commission Engine**
+   - Configurable rules (fixed amount or percentage of service fees).
+   - SHA-256 database-enforced idempotency prevents duplicate earnings on retries.
+   - Immutable historical snapshots of applied commission rules.
+   - Payout preparation, Clinic Admin approval, and batch disbursement reconciliation.
 
-## Agentic Development
+5. **Patient Management & Unified Timeline**
+   - Human-readable clinic-specific patient numbers (`HM-YYYY-XXXX`).
+   - Unified medical timeline: Appointments, outreach calls, vital trends, doctor consultations, prescriptions, and invoices.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+6. **Clinic Billing & Invoicing**
+   - Itemized invoices with discounts, tax calculations, and partial payment reconciliation.
+   - Multiple payment methods supported: Cash, Card, bKash, Nagad, Rocket, Bank Transfer.
 
+7. **Patient Portal**
+   - Self-service portal for patients to view appointments, medical history, prescriptions, and bills.
+   - Online appointment self-booking.
+
+8. **Platform Super Administration**
+   - Platform subscription tiers, active tenant monitoring, clinic suspension/reactivation.
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Requirements
+- PHP 8.3 or PHP 8.4+
+- Composer 2+
+- Node.js 20+ & npm
+- SQLite (for testing) or MySQL 8.0+ / MariaDB 10.11+ (production)
+
+### 2. Installation
 ```bash
-composer require laravel/boost --dev
+# Clone the repository
+git clone https://github.com/your-org/healthmate.git
+cd healthmate
 
-php artisan boost:install
+# Install PHP dependencies
+composer install
+
+# Install JS dependencies & compile frontend assets
+npm install
+npm run build
+
+# Setup environment configuration
+cp .env.example .env
+php artisan key:generate
+
+# Run database migrations and seed sample demo data
+php artisan migrate:fresh --seed
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 3. Start Local Development Server
+```bash
+php artisan serve
+```
+Visit `http://127.0.0.1:8000` in your web browser.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🔑 Demo Credentials
 
-## Code of Conduct
+The database seeder provisions two independent clinics (`CarePoint Multi-Specialty Clinic` and `Apex Family Health Clinic`) to demonstrate strict tenant isolation and role workflows.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+All demo accounts use password: `password`
 
-## Security Vulnerabilities
+| Role | Name | Email | Clinic Workspace |
+|---|---|---|---|
+| **Super Admin** | Platform Administrator | `superadmin@healthmate.test` | Platform Management |
+| **Clinic Admin** | Dr. Kazi Mahfuz | `admin@carepoint.test` | CarePoint Clinic |
+| **Doctor** | Dr. Tariqul Islam | `dr.tariq@carepoint.test` | CarePoint Clinic |
+| **Nurse** | Poly Begum | `nurse.poly@carepoint.test` | CarePoint Clinic |
+| **Receptionist** | Sumi Akhter | `receptionist@carepoint.test` | CarePoint Clinic |
+| **Accountant** | Farhan Ahmed | `accountant@carepoint.test` | CarePoint Clinic |
+| **Patient** | Abdul Karim | `patient.abdul@healthmate.test` | Patient Portal |
+| **Apex Clinic Admin** | Dr. Monirul Haque | `admin@apex.test` | Apex Family Care (Clinic 2) |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+> **Note:** The login screen includes a 1-click **Quick Demo Login** selector that auto-fills credentials for any role.
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🧪 Automated Testing
+
+HealthMate features a comprehensive automated test suite written in **Pest PHP** verifying tenant isolation, nurse and doctor workflows, commission calculations, idempotency, role permissions, and billing:
+
+```bash
+# Run the complete test suite
+php artisan test --compact
+```
+
+### Test Coverage Highlights:
+- **Tenant Isolation**: Confirms Clinic B users cannot read or access Clinic A patients, appointments, or medical records (HTTP 404).
+- **Double Booking Prevention**: Enforces doctor availability and rejects overlapping appointments.
+- **Nurse Follow-up Lifecycle**: Tests call outcomes, vitals recording, report submission, and commission generation.
+- **Doctor Consultation**: Tests report review, consultation completion, diagnoses, and multi-item prescriptions.
+- **Financial Ledger & Idempotency**: Tests fixed & percentage rules, rule snapshotting, duplicate prevention, and payout batches.
+- **Role Permissions**: Tests that nurses/receptionists cannot prescribe drugs (HTTP 403) and doctors cannot approve payouts without admin privileges.
+
+---
+
+## 📚 Technical Documentation
+
+Detailed architectural and workflow documentation is located in the [`docs/`](docs) directory:
+
+- [System Architecture](docs/architecture.md)
+- [Multi-Tenancy Isolation](docs/tenancy.md)
+- [Roles & Permissions Matrix](docs/permissions.md)
+- [Database Schema Specification](docs/database-schema.md)
+- [Patient Workflow](docs/patient-workflow.md)
+- [Nurse Workflow & Call Management](docs/nurse-workflow.md)
+- [Doctor Workspace & Consultation](docs/doctor-workflow.md)
+- [Auditable Commission Engine](docs/commission-engine.md)
+- [Billing & Payments](docs/billing.md)
+- [SaaS Subscriptions](docs/subscriptions.md)
+- [Application Security Specification](docs/security.md)
+- [Privacy & Medical Record Integrity](docs/privacy-and-retention.md)
+- [Automated Testing Strategy](docs/testing.md)
+- [Production Deployment Guide](docs/deployment.md)
+- [Backup & Disaster Recovery](docs/backup-and-recovery.md)
+- [Integrations & Payment Gateways](docs/api-and-integrations.md)
+
+---
+
+## 🛡️ License
+Proprietary — HealthMate Multi-Clinic SaaS Platform. All rights reserved.
