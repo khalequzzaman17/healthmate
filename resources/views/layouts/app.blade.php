@@ -11,10 +11,145 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
 
-    <!-- Scripts & Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Pre-render Theme Application (Zero FOUC) -->
+    <script data-cfasync="false">
+        (function() {
+            try {
+                const stored = localStorage.getItem('theme') || 'system';
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (stored === 'dark' || (stored === 'system' && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    <!-- Tailwind CSS CDN (with Rocket Loader bypass) -->
+    <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
+    <script data-cfasync="false">
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Instrument Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js CDN (with Rocket Loader bypass) -->
+    <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script data-cfasync="false">
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('theme', {
+                current: localStorage.getItem('theme') || 'system',
+                systemDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
+                
+                init() {
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                        this.systemDark = e.matches;
+                        if (this.current === 'system') {
+                            this.apply();
+                        }
+                    });
+                    this.apply();
+                },
+
+                set(val) {
+                    this.current = val;
+                    localStorage.setItem('theme', val);
+                    this.apply();
+                },
+
+                apply() {
+                    const isDark = this.current === 'dark' || (this.current === 'system' && this.systemDark);
+                    if (isDark) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                }
+            });
+        });
+    </script>
+
+    <style>
+        html {
+            color-scheme: light dark;
+        }
+        html.dark {
+            color-scheme: dark;
+        }
+        .dark .bg-white {
+            background-color: #0f172a !important; /* slate-900 */
+        }
+        .dark .bg-slate-50 {
+            background-color: #020617 !important; /* slate-950 */
+        }
+        .dark .border-slate-200, 
+        .dark .border-slate-200\/80,
+        .dark .border-slate-100 {
+            border-color: #1e293b !important; /* slate-800 */
+        }
+        .dark .text-slate-900 {
+            color: #f8fafc !important; /* slate-50 */
+        }
+        .dark .text-slate-800 {
+            color: #f1f5f9 !important; /* slate-100 */
+        }
+        .dark .text-slate-700 {
+            color: #e2e8f0 !important; /* slate-200 */
+        }
+        .dark .text-slate-600 {
+            color: #cbd5e1 !important; /* slate-300 */
+        }
+        .dark .text-slate-500 {
+            color: #94a3b8 !important; /* slate-400 */
+        }
+        .dark .hover\:bg-slate-50:hover,
+        .dark .hover\:bg-slate-100:hover {
+            background-color: #1e293b !important; /* slate-800 */
+        }
+        .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+        .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #1e293b !important;
+        }
+        .dark input, 
+        .dark select, 
+        .dark textarea {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+        .dark input::placeholder, 
+        .dark textarea::placeholder {
+            color: #64748b !important;
+        }
+        .dark .bg-sky-50 {
+            background-color: rgba(14, 165, 233, 0.12) !important;
+        }
+        .dark .bg-teal-50 {
+            background-color: rgba(20, 184, 166, 0.12) !important;
+        }
+        .dark .bg-emerald-50 {
+            background-color: rgba(16, 185, 129, 0.12) !important;
+        }
+        .dark .bg-amber-50 {
+            background-color: rgba(245, 158, 11, 0.12) !important;
+        }
+        .dark .bg-rose-50 {
+            background-color: rgba(244, 63, 94, 0.12) !important;
+        }
+        .dark .bg-purple-50 {
+            background-color: rgba(168, 85, 247, 0.12) !important;
+        }
+    </style>
 </head>
-<body class="h-full antialiased font-sans text-slate-800" x-data="{ sidebarOpen: false, clinicMenuOpen: false, userMenuOpen: false }">
+<body class="h-full antialiased font-sans text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-950" x-data="{ sidebarOpen: false, clinicMenuOpen: false, userMenuOpen: false }">
     <div class="min-h-full flex flex-col lg:flex-row">
         <!-- Mobile Sidebar Backdrop -->
         <div x-show="sidebarOpen" 
@@ -196,17 +331,17 @@
         </aside>
 
         <!-- Main Content Wrapper -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950">
             <!-- Top Navbar -->
-            <header class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30">
+            <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30">
                 <div class="flex items-center gap-4">
-                    <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-md text-slate-500 hover:bg-slate-100">
+                    <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                     @if(isset($activeClinic) && $activeClinic)
                         <div class="flex items-center gap-2">
-                            <span class="text-sm font-semibold text-slate-800">{{ $activeClinic->name }}</span>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $activeClinic->name }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
                                 {{ $activeClinic->city ?? 'Dhaka' }} &bull; {{ $activeClinic->timezone ?? 'Asia/Dhaka' }}
                             </span>
                         </div>
@@ -214,9 +349,100 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <span class="text-xs text-slate-500 hidden sm:inline-block">Currency: <strong>{{ $activeClinic->currency ?? 'BDT' }}</strong></span>
-                    <div class="h-5 w-px bg-slate-200 hidden sm:block"></div>
-                    <span class="text-xs text-slate-700 font-medium">{{ auth()->user()->name }}</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline-block">Currency: <strong>{{ $activeClinic->currency ?? 'BDT' }}</strong></span>
+                    <div class="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+
+                    <!-- Theme Mode Switcher (Light / Dark / Auto) -->
+                    <div class="relative" x-data="{ themeMenuOpen: false }">
+                        <button @click="themeMenuOpen = !themeMenuOpen" 
+                                @click.outside="themeMenuOpen = false"
+                                type="button" 
+                                title="Change Color Theme" 
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                            <!-- Sun icon for light -->
+                            <template x-if="$store.theme.current === 'light'">
+                                <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </template>
+                            <!-- Moon icon for dark -->
+                            <template x-if="$store.theme.current === 'dark'">
+                                <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                </svg>
+                            </template>
+                            <!-- Monitor icon for auto / system -->
+                            <template x-if="$store.theme.current === 'system'">
+                                <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </template>
+                            <span class="text-xs font-semibold capitalize hidden md:inline" x-text="$store.theme.current === 'system' ? 'Auto' : $store.theme.current"></span>
+                            <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <div x-show="themeMenuOpen" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-50 text-xs" 
+                             style="display: none;">
+                            <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Theme Appearance</div>
+                            <!-- Light option -->
+                            <button type="button" 
+                                    @click="$store.theme.set('light'); themeMenuOpen = false" 
+                                    :class="$store.theme.current === 'light' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'"
+                                    class="w-full flex items-center justify-between px-3 py-2 transition text-left">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                    <span>White / Light</span>
+                                </div>
+                                <template x-if="$store.theme.current === 'light'">
+                                    <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </template>
+                            </button>
+                            <!-- Dark option -->
+                            <button type="button" 
+                                    @click="$store.theme.set('dark'); themeMenuOpen = false" 
+                                    :class="$store.theme.current === 'dark' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'"
+                                    class="w-full flex items-center justify-between px-3 py-2 transition text-left">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                    </svg>
+                                    <span>Dark Mode</span>
+                                </div>
+                                <template x-if="$store.theme.current === 'dark'">
+                                    <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </template>
+                            </button>
+                            <!-- System Auto option -->
+                            <button type="button" 
+                                    @click="$store.theme.set('system'); themeMenuOpen = false" 
+                                    :class="$store.theme.current === 'system' ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'"
+                                    class="w-full flex items-center justify-between px-3 py-2 transition text-left">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    <span>Auto (System)</span>
+                                </div>
+                                <template x-if="$store.theme.current === 'system'">
+                                    <svg class="w-4 h-4 text-sky-600 dark:text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                </template>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+                    <span class="text-xs text-slate-700 dark:text-slate-300 font-medium">{{ auth()->user()->name }}</span>
                 </div>
             </header>
 
