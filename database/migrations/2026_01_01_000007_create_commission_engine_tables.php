@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->index(['clinic_id', 'staff_role', 'activity_type', 'is_active']);
+            $table->index(['clinic_id', 'staff_role', 'activity_type', 'is_active'], 'comm_rules_role_act_active_idx');
         });
 
         Schema::create('commission_ledger_entries', function (Blueprint $table) {

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('status')->default('scheduled'); // scheduled, completed, canceled, overdue
             $table->timestamps();
 
-            $table->index(['clinic_id', 'assigned_nurse_id', 'due_date', 'status']);
+            $table->index(['clinic_id', 'assigned_nurse_id', 'due_date', 'status'], 'fup_plans_nurse_due_status_idx');
         });
 
         Schema::create('patient_calls', function (Blueprint $table) {
