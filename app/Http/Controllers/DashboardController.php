@@ -63,15 +63,26 @@ class DashboardController extends Controller
 
                 $completedConsultationsCount = Consultation::where('doctor_id', $user->id)->count();
 
+                $upcomingConsultationsCount = Appointment::where('doctor_id', $user->id)
+                    ->where('scheduled_at', '>=', now())
+                    ->where('scheduled_at', '<=', now()->addDays(7))
+                    ->count();
+
                 $commissionTotal = CommissionLedgerEntry::where('staff_user_id', $user->id)
                     ->whereIn('status', [CommissionStatus::Approved->value, CommissionStatus::Payable->value, CommissionStatus::Paid->value])
                     ->sum('amount');
+
+                $recentPatients = Patient::latest()->take(5)->get();
+                $featuredPatient = $todayAppointments->first()?->patient ?? Patient::first();
 
                 return view('dashboard.doctor', compact(
                     'todayAppointments',
                     'reportsAwaitingReview',
                     'completedConsultationsCount',
-                    'commissionTotal'
+                    'upcomingConsultationsCount',
+                    'commissionTotal',
+                    'recentPatients',
+                    'featuredPatient'
                 ));
 
             case 'nurse':
@@ -91,11 +102,22 @@ class DashboardController extends Controller
                     ->where('status', FollowUpStatus::Scheduled->value)
                     ->count();
 
+                $upcomingFollowUps = FollowUpPlan::where('assigned_nurse_id', $user->id)
+                    ->whereDate('due_date', '>', $today)
+                    ->where('status', FollowUpStatus::Scheduled->value)
+                    ->with('patient')
+                    ->take(10)
+                    ->get();
+
                 $submittedReports = HealthReport::where('nurse_id', $user->id)
                     ->with(['patient', 'reviewerDoctor'])
                     ->latest()
                     ->take(5)
                     ->get();
+
+                $pendingReportsCount = HealthReport::where('nurse_id', $user->id)
+                    ->where('status', HealthReportStatus::Submitted->value)
+                    ->count();
 
                 $nurseCommissionTotal = CommissionLedgerEntry::where('staff_user_id', $user->id)
                     ->whereIn('status', [CommissionStatus::Approved->value, CommissionStatus::Payable->value, CommissionStatus::Paid->value])
@@ -105,7 +127,9 @@ class DashboardController extends Controller
                     'assignedPatientsCount',
                     'callsDueToday',
                     'overdueFollowUpsCount',
+                    'upcomingFollowUps',
                     'submittedReports',
+                    'pendingReportsCount',
                     'nurseCommissionTotal'
                 ));
 
@@ -146,6 +170,15 @@ class DashboardController extends Controller
             default:
                 $totalPatients = Patient::count();
                 $todayAppointmentsCount = Appointment::whereDate('scheduled_at', $today)->count();
+                $completedConsultationsCount = Consultation::count();
+                if ($completedConsultationsCount === 0) {
+                    $completedConsultationsCount = Appointment::where('status', AppointmentStatus::Completed->value)->count();
+                }
+                $pendingNurseFollowUpsCount = FollowUpPlan::where('status', FollowUpStatus::Scheduled->value)->count();
+                $overdueFollowUpsCount = FollowUpPlan::whereDate('due_date', '<', $today)
+                    ->where('status', FollowUpStatus::Scheduled->value)
+                    ->count();
+
                 $pendingReportsCount = HealthReport::where('status', HealthReportStatus::Submitted->value)->count();
                 $pendingCommissionsCount = CommissionLedgerEntry::where('status', CommissionStatus::Pending->value)->count();
                 $totalRevenue = Invoice::sum('paid_amount');
@@ -161,15 +194,26 @@ class DashboardController extends Controller
                     ->take(5)
                     ->get();
 
+                $patientFlow = [
+                    'completed' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::Completed->value)->count(),
+                    'in_progress' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::CheckedIn->value)->count(),
+                    'waiting' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::Scheduled->value)->count(),
+                    'cancelled' => Appointment::whereDate('scheduled_at', $today)->where('status', AppointmentStatus::Cancelled->value)->count(),
+                ];
+
                 return view('dashboard.admin', compact(
                     'totalPatients',
                     'todayAppointmentsCount',
+                    'completedConsultationsCount',
+                    'pendingNurseFollowUpsCount',
+                    'overdueFollowUpsCount',
                     'pendingReportsCount',
                     'pendingCommissionsCount',
                     'totalRevenue',
                     'dueRevenue',
                     'recentAppointments',
-                    'recentReports'
+                    'recentReports',
+                    'patientFlow'
                 ));
         }
     }
